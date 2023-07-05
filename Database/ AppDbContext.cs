@@ -1,3 +1,4 @@
+using Csharpauth.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
@@ -29,5 +30,6 @@ namespace Csharpauth.Database
             base.OnModelCreating(modelBuilder);
         }
 
+        public DbSet<AppUser> AppUsers { get; set; } = null!;
     }
 }

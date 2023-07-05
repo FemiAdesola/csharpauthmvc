@@ -1,4 +1,5 @@
 using Csharpauth.Database;
+using Microsoft.AspNetCore.Identity;
 
 namespace Csharpauth
 {
@@ -17,6 +18,10 @@ namespace Csharpauth
             services.AddControllersWithViews();
             services.AddRazorPages();
 
+            // for adding identity user and roles
+            services.AddIdentity<IdentityUser, IdentityRole>()
+               .AddEntityFrameworkStores<AppDbContext>(); // this line adds relation between user and role
+            //
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
