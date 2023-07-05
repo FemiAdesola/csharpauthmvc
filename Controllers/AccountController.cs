@@ -1,6 +1,7 @@
 using Csharpauth.Database;
 using Csharpauth.DTOs;
 using Csharpauth.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -27,21 +28,21 @@ namespace Csharpauth.Controllers
             return View();
         }
 
+        // --------------------------------Register --------------------------------
         [HttpGet]
-        public async Task<IActionResult>Register()
+        public async Task<IActionResult>Register(string returnUrl = null!)
         {
-            // var queryable = _context.AppUsers.AsQueryable();
-            // var result = await queryable.ToListAsync();
-
+            ViewData["ReturnUrl"] = returnUrl;
             Register register = new Register();
             return View(register);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult>Register(Register model)
+        public async Task<IActionResult>Register(Register model, string returnUrl = null!)
         {
-
+            ViewData["ReturnUrl"] = returnUrl;
+            returnUrl = returnUrl ?? Url.Content("~/");
             if(ModelState.IsValid)
             {
                 var user = new AppUser { 
@@ -55,7 +56,7 @@ namespace Csharpauth.Controllers
                 if (result.Succeeded)
                 {
                     await _signInManager.SignInAsync(user, isPersistent: false);
-                    return RedirectToAction("Index", "Home");
+                    return LocalRedirect(returnUrl);
                 }
                 AddErrors(result);
             }
@@ -63,8 +64,9 @@ namespace Csharpauth.Controllers
             return View(model);
         }
 
+        // --------------------------------Login --------------------------------
         [HttpGet]
-        public async Task<IActionResult>Login(string returnUrl = null)
+        public async Task<IActionResult>Login(string returnUrl = null!)
         {
             ViewData["ReturnUrl"] = returnUrl;
             return View();
@@ -72,20 +74,24 @@ namespace Csharpauth.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult>Login(Login model, string returnUrl = null)
+        public async Task<IActionResult>Login(Login model, string returnUrl = null!)
         {
             ViewData["ReturnUrl"] = returnUrl;
+            returnUrl = returnUrl ?? Url.Content("~/");
             if (ModelState.IsValid)
             {
                 var result = await _signInManager.PasswordSignInAsync(
                     model.Email, 
                     model.Password, 
                     model.RememberMe, 
-                    lockoutOnFailure: false);
+                    lockoutOnFailure: true);
                 if (result.Succeeded)
                 {
-                    // return RedirectToAction("Index", "Home");
-                    return Redirect(returnUrl);
+                    return LocalRedirect(returnUrl);
+                }
+                if (result.IsLockedOut)
+                {
+                    return View("Lockout");
                 }
                 else
                 {
@@ -96,9 +102,7 @@ namespace Csharpauth.Controllers
             return View(model);
         }
 
-
-
-
+        // --------------------------------Logout --------------------------------
         [HttpPost("logout")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
@@ -106,6 +110,32 @@ namespace Csharpauth.Controllers
             await _signInManager.SignOutAsync();
             return RedirectToAction("Index", "Home");
         }
+
+        // --------------------------------Forgetpasswords --------------------------------
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult ForgotPassword()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [AllowAnonymous]
+        public async Task<IActionResult> ForgotPassword(ForgetPassword model)
+        {
+
+            if (ModelState.IsValid)
+            {
+                var user = await _userManager.FindByEmailAsync(model.Email);
+                if (user == null)
+                {
+                    return RedirectToAction("ForgotPasswordConfirmation");
+                }
+            }
+             return View(model);
+        }
+
         private void AddErrors(IdentityResult result)
         {
             foreach (var error in result.Errors)

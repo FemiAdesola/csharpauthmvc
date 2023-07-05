@@ -2,6 +2,19 @@ html {
   font-size: 14px;
 }
 
+a.navbar-brand {
+  white-space: normal;
+  text-align: center;
+  word-break: break-all;
+}
+
+.border-top {
+  border-top: 1px solid #e5e5e5;
+}
+.border-bottom {
+  border-bottom: 1px solid #e5e5e5;
+}
+
 @media (min-width: 768px) {
   html {
     font-size: 16px;

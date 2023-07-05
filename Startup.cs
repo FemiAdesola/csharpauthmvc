@@ -22,6 +22,14 @@ namespace Csharpauth
             services.AddIdentity<IdentityUser, IdentityRole>()
                .AddEntityFrameworkStores<AppDbContext>(); // this line adds relation between user and role
             //
+
+            services.Configure<IdentityOptions>(option =>
+            {
+                option.Password.RequiredLength = 5;
+                option.Password.RequireLowercase = true;
+                option.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromSeconds(30);
+                option.Lockout.MaxFailedAccessAttempts = 3;
+            });
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
