@@ -73,6 +73,23 @@ namespace Csharpauth.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult>Login(Login model)
         {
+            if (ModelState.IsValid)
+            {
+                var result = await _signInManager.PasswordSignInAsync(
+                    model.Email, 
+                    model.Password, 
+                    model.RememberMe, 
+                    lockoutOnFailure: true);
+                if (result.Succeeded)
+                {
+                    return RedirectToAction("Index", "Home");
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                    return View(model);
+                }
+            }
             return View(model);
         }
 
