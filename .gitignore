@@ -1,0 +1,17 @@
+/Note.md
+
+# User-specific files
+Csharpauth/appsettings.json
+Csharpauth/appsettings.*.json
+Csharpauth/obj
+Csharpauth/bin
+Csharpauth/bin
+Csharpauth/Migrations
+
+
+# User-specific files
+/appsettings.json
+/appsettings.*.json
+/bin
+/bin
+/obj
