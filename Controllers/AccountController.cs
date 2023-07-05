@@ -6,12 +6,12 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Csharpauth.Controllers
 {
-    public class AppUserController : BaseApiController
+    public class AccountController : Controller    
     {
         private readonly UserManager<IdentityUser> _userManager;
          private readonly SignInManager<IdentityUser> _signInManager;
         private readonly AppDbContext _context;
-         public AppUserController(
+         public AccountController(
             UserManager<IdentityUser> userManager,
             SignInManager<IdentityUser> signInManager,
             AppDbContext context
@@ -64,25 +64,28 @@ namespace Csharpauth.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult>Login()
+        public async Task<IActionResult>Login(string returnUrl = null)
         {
+            ViewData["ReturnUrl"] = returnUrl;
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult>Login(Login model)
+        public async Task<IActionResult>Login(Login model, string returnUrl = null)
         {
+            ViewData["ReturnUrl"] = returnUrl;
             if (ModelState.IsValid)
             {
                 var result = await _signInManager.PasswordSignInAsync(
                     model.Email, 
                     model.Password, 
                     model.RememberMe, 
-                    lockoutOnFailure: true);
+                    lockoutOnFailure: false);
                 if (result.Succeeded)
                 {
-                    return RedirectToAction("Index", "Home");
+                    // return RedirectToAction("Index", "Home");
+                    return Redirect(returnUrl);
                 }
                 else
                 {
