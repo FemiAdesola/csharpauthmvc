@@ -1,4 +1,5 @@
 using Csharpauth.Database;
+using Csharpauth.DTOs;
 using Csharpauth.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -62,6 +63,29 @@ namespace Csharpauth.Controllers
             return View(model);
         }
 
+        [HttpGet]
+        public async Task<IActionResult>Login()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult>Login(Login model)
+        {
+            return View(model);
+        }
+
+
+
+
+        [HttpPost("logout")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Logout()
+        {
+            await _signInManager.SignOutAsync();
+            return RedirectToAction("Index", "Home");
+        }
         private void AddErrors(IdentityResult result)
         {
             foreach (var error in result.Errors)
