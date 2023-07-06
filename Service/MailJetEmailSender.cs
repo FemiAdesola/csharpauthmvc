@@ -8,11 +8,10 @@ namespace Csharpauth.Service
     public class MailJetEmailSender : IEmailSender
     {
         private readonly IConfiguration _configuration;
-        private MailJetOptions _mailJetOptions;
-        public MailJetEmailSender(IConfiguration configuration, MailJetOptions mailJetOptions)
+        public MailJetOptions _mailJetOptions = null!;
+        public MailJetEmailSender(IConfiguration configuration)
         {
             _configuration = configuration;
-            _mailJetOptions = mailJetOptions;
         }
         public async Task SendEmailAsync(string email, string subject, string htmlMessage)
         {
@@ -43,7 +42,7 @@ namespace Csharpauth.Service
                             {
                                 {
                                     "Email",
-                                    "femioyin@proton.me"
+                                    email
                                 }, 
                                 {
                                     "Name",

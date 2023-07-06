@@ -1,5 +1,7 @@
 using Csharpauth.Database;
+using Csharpauth.Service;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 
 namespace Csharpauth
 {
@@ -20,9 +22,13 @@ namespace Csharpauth
 
             // for adding identity user and roles
             services.AddIdentity<IdentityUser, IdentityRole>()
-               .AddEntityFrameworkStores<AppDbContext>(); // this line adds relation between user and role
+               .AddEntityFrameworkStores<AppDbContext>() // this line adds relation between user and role
+               .AddDefaultTokenProviders(); // this line adds to email forget your password
             //
 
+            // email sender
+            services.AddTransient<IEmailSender, MailJetEmailSender>();
+            //
             services.Configure<IdentityOptions>(option =>
             {
                 option.Password.RequiredLength = 5;
