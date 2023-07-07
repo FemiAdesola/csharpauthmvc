@@ -36,6 +36,13 @@ namespace Csharpauth
                 option.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromSeconds(30);
                 option.Lockout.MaxFailedAccessAttempts = 3;
             });
+
+            // facebook 
+            services.AddAuthentication().AddFacebook(options =>
+            {
+                options.AppId = "828039552096956";
+                options.AppSecret = "8cc034dae5cea7a560b609d2c49fd565";
+            });
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

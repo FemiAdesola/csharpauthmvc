@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Csharpauth.Database;
 using Csharpauth.DTOs;
 using Csharpauth.Models;
@@ -225,6 +226,96 @@ namespace Csharpauth.Controllers
             return View(result.Succeeded ? "ConfirmEmail" : "Error");
 
         }
+
+        //-------------------------Externallogin Facebook---------------------------------------
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public IActionResult ExternalLogin(string provider, string returnurl = null)
+        {
+            //request a redirect to the external login provider
+            var redirecturl = Url.Action("ExternalLoginCallback", "Account", 
+                new { ReturnUrl = returnurl });
+            var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirecturl);
+            return Challenge(properties, provider);
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> ExternalLoginCallback(string returnurl = null!, string remoteError = null!)
+        {
+            returnurl = returnurl ?? Url.Content("~/");
+            if (remoteError != null)
+            {
+                ModelState.AddModelError(string.Empty, $"Error from external provider: {remoteError}");
+                return View(nameof(Login));
+            }
+            var info = await _signInManager.GetExternalLoginInfoAsync();
+            if (info == null)
+            {
+                return RedirectToAction(nameof(Login));
+            }
+
+            // to signin with external login provider
+            var result = await _signInManager.ExternalLoginSignInAsync(
+                    info.LoginProvider, 
+                    info.ProviderKey, 
+                    isPersistent: false);
+            if (result.Succeeded)
+            {
+                //update authentication tokens
+                await _signInManager.UpdateExternalAuthenticationTokensAsync(info);
+                return LocalRedirect(returnurl);
+            }
+            if (result.RequiresTwoFactor)
+            {
+                return RedirectToAction("VerifyAuthenticatorCode", new { returnurl = returnurl });
+            }
+            else
+            {
+                //If the user does not have account, then ask the user to create an account.
+                ViewData["ReturnUrl"] = returnurl;
+                ViewData["ProviderDisplayName"] = info.ProviderDisplayName;
+                var email = info.Principal.FindFirstValue(ClaimTypes.Email);
+                var name = info.Principal.FindFirstValue(ClaimTypes.Name);
+                return View("ExternalLoginConfirmation", new ExternalLoginConfirmation { Email = email!, Name=name! });
+
+            }
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ExternalLoginConfirmation(ExternalLoginConfirmation model, string returnurl = null!)
+        {
+            returnurl = returnurl ?? Url.Content("~/");
+
+            if (ModelState.IsValid)
+            {
+                //get the info about the user from external login provider
+                var info = await _signInManager.GetExternalLoginInfoAsync();
+                if (info == null)
+                {
+                    return View("Error");
+                }
+                var user = new ApplicationUser { UserName = model.Email, Email = model.Email, Name = model.Name };
+                var result = await _userManager.CreateAsync(user);
+                if (result.Succeeded)
+                {
+                    result = await _userManager.AddLoginAsync(user, info);
+                    if (result.Succeeded)
+                    {
+                        await _signInManager.SignInAsync(user, isPersistent: false);
+                        await _signInManager.UpdateExternalAuthenticationTokensAsync(info);
+                        return LocalRedirect(returnurl);
+                    }
+                }
+                AddErrors(result);
+            }
+            ViewData["ReturnUrl"] = returnurl;
+            return View(model);
+        }
+        //
 
         private void AddErrors(IdentityResult result)
         {
