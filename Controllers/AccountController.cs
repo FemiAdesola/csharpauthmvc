@@ -7,19 +7,23 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace Csharpauth.Controllers
 {
+    [Authorize]
     public class AccountController : Controller    
     {
         private readonly UserManager<IdentityUser> _userManager;
         private readonly SignInManager<IdentityUser> _signInManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IEmailSender _emailSender;
         private readonly AppDbContext _context;
         private readonly UrlEncoder _urlEncoder;
          public AccountController(
             UserManager<IdentityUser> userManager,
             SignInManager<IdentityUser> signInManager,
+            RoleManager<IdentityRole> roleManager,
             AppDbContext context,
             IEmailSender emailSender,
             UrlEncoder urlEncoder
@@ -28,6 +32,7 @@ namespace Csharpauth.Controllers
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _roleManager = roleManager;
             _context = context;
             _emailSender = emailSender;
             _urlEncoder = urlEncoder;
@@ -39,14 +44,38 @@ namespace Csharpauth.Controllers
 
         // --------------------------------Register --------------------------------
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult>Register(string returnUrl = null!)
         {
+            // for add roles
+            if(!await _roleManager.RoleExistsAsync("Admin"))
+            {
+                //create roles
+                await _roleManager.CreateAsync(new IdentityRole("Admin"));
+                await _roleManager.CreateAsync(new IdentityRole("User"));
+            }
+
+            List<SelectListItem> listItems = new List<SelectListItem>();
+            listItems.Add(new SelectListItem()
+            {
+                Value = "Admin",
+                Text = "Admin"
+            });
+            listItems.Add(new SelectListItem()
+            {
+                Value = "User",
+                Text = "User"
+            });
+            //
+            
             ViewData["ReturnUrl"] = returnUrl;
-            Register register = new Register();
+            Register register = new Register(){RoleList = listItems};
+            //  Register register = new Register();
             return View(register);
         }
 
         [HttpPost]
+        [AllowAnonymous]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult>Register(Register model, string returnUrl = null!)
         {
@@ -64,6 +93,16 @@ namespace Csharpauth.Controllers
 
                 if (result.Succeeded)
                 {
+                    //for roles
+                    if(model.RoleSelected!=null && model.RoleSelected.Length>0 && model.RoleSelected == "Admin")
+                    {
+                        await _userManager.AddToRoleAsync(user, "Admin");
+                    }
+                    else
+                    {
+                        await _userManager.AddToRoleAsync(user, "User");
+                    }
+                    //
 
                     var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                     var callbackurl = Url.Action("ConfirmEmail", "Account", 
@@ -83,6 +122,7 @@ namespace Csharpauth.Controllers
 
         // --------------------------------Login --------------------------------
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult>Login(string returnUrl = null!)
         {
             ViewData["ReturnUrl"] = returnUrl;
@@ -90,6 +130,7 @@ namespace Csharpauth.Controllers
         }
 
         [HttpPost]
+        [AllowAnonymous]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult>Login(Login model, string returnUrl = null!)
         {
@@ -146,7 +187,7 @@ namespace Csharpauth.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        // [AllowAnonymous]
+        [AllowAnonymous]
         public async Task<IActionResult> ForgotPassword(ForgetPassword model)
         {
 
@@ -172,7 +213,7 @@ namespace Csharpauth.Controllers
         }
 
         [HttpGet]
-        // [AllowAnonymous]
+        [AllowAnonymous]
         public IActionResult ForgotPasswordConfirmation()
         {
             return View();
@@ -311,10 +352,11 @@ namespace Csharpauth.Controllers
                 {
                     return View("Error");
                 }
-                var user = new ApplicationUser { UserName = model.Email, Email = model.Email, Name = model.Name };
+                var user = new AppUser { UserName = model.Email, Email = model.Email, Name = model.Name };
                 var result = await _userManager.CreateAsync(user);
                 if (result.Succeeded)
                 {
+                    await _userManager.AddToRoleAsync(user, "User"); // for user role
                     result = await _userManager.AddLoginAsync(user, info);
                     if (result.Succeeded)
                     {

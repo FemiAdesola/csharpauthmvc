@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace Csharpauth.Models
 {
@@ -20,6 +21,10 @@ namespace Csharpauth.Models
         public string ConfirmPassword { get; set; } = null!;
 
         public string Name { get; set; } = null!;
+
+        // for roles
+        public IEnumerable<SelectListItem>? RoleList { get; set; } 
+        public string RoleSelected { get; set; } = null!;
 
     }
 }

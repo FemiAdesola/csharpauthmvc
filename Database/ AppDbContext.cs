@@ -31,5 +31,6 @@ namespace Csharpauth.Database
         }
 
         public DbSet<AppUser> AppUsers { get; set; } = null!;
+        // public DbSet<ApplicationUser> ApplicationUsers { get; set; } = null!;
     }
 }

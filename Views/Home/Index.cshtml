@@ -27,14 +27,15 @@
         }
         <br /><br />
 
-        @* @if (isAdmin.Succeeded)
+        @* @if (isAdmin.Succeeded) *@
+         @if (User.IsInRole("Admin"))
         {
             <h2>Your role is - Admin</h2>
         }
         else
         {
-            <h2>Your role is - Non Admin</h2>
-        } *@
+            <h2>Your role is - User</h2>
+        }
     }
 
     <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>

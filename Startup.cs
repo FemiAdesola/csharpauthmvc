@@ -24,7 +24,7 @@ namespace Csharpauth
             services.AddIdentity<IdentityUser, IdentityRole>()
                .AddEntityFrameworkStores<AppDbContext>() // this line adds relation between user and role
                .AddDefaultTokenProviders()
-               .AddDefaultUI(); // this line adds to email forget your password
+              ; // this line adds to email forget your password
             //
 
             // email sender
@@ -36,6 +36,11 @@ namespace Csharpauth
                 option.Password.RequireLowercase = true;
                 option.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromSeconds(30);
                 option.Lockout.MaxFailedAccessAttempts = 3;
+            });
+
+            services.ConfigureApplicationCookie(options =>
+            {
+               options.AccessDeniedPath = new Microsoft.AspNetCore.Http.PathString("/Home/Accessdenied");
             });
 
             // facebook injection 
