@@ -17,7 +17,9 @@
         var twofactor = ViewData["TwoFactorEnabled"];
         if (twofactor != null && twofactor.ToString()!.ToLower() == "true")
         {
-            <a asp-action="RemoveAuthenticator" asp-controller="Account" class="btn btn-warning">Reset & Remove Two Factor Auth</a>
+            <a asp-action="RemoveAuthenticator" asp-controller="Account" class="btn btn-warning">
+                Reset & Remove Two Factor Auth
+                </a>
         }
         else
         {
