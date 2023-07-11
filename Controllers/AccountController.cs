@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Text.Encodings.Web;
 using Csharpauth.Database;
 using Csharpauth.DTOs;
 using Csharpauth.Models;
@@ -15,11 +16,13 @@ namespace Csharpauth.Controllers
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly IEmailSender _emailSender;
         private readonly AppDbContext _context;
+        private readonly UrlEncoder _urlEncoder;
          public AccountController(
             UserManager<IdentityUser> userManager,
             SignInManager<IdentityUser> signInManager,
             AppDbContext context,
-            IEmailSender emailSender
+            IEmailSender emailSender,
+            UrlEncoder urlEncoder
 
             )
         {
@@ -27,6 +30,7 @@ namespace Csharpauth.Controllers
             _signInManager = signInManager;
             _context = context;
             _emailSender = emailSender;
+            _urlEncoder = urlEncoder;
         }
         public IActionResult Index()
         {
@@ -330,12 +334,16 @@ namespace Csharpauth.Controllers
         [HttpGet]
         public async Task<IActionResult> EnableAuthenticator()
         {
-            //string AuthenticatorUriFormat = "otpauth://totp/{0}:{1}?secret={2}&issuer={0}&digits=6"; // strig format for qrcode
+            string AuthenticatorUriFormat = "otpauth://totp/{0}:{1}?secret={2}&issuer={0}&digits=6"; // strig format for qrcode
 
             var user = await _userManager.GetUserAsync(User);
             await _userManager.ResetAuthenticatorKeyAsync(user!);
             var token = await _userManager.GetAuthenticatorKeyAsync(user!);
-            var model = new TwoFactorAuthentication() { Token = token!};
+            string AuthenticatorUri = string.Format(
+                AuthenticatorUriFormat, 
+                _urlEncoder.Encode("IdentityManager"),
+                _urlEncoder.Encode(user!.Email!), token);
+            var model = new TwoFactorAuthentication() { Token = token!, QRCodeUrl = AuthenticatorUri };
             return View(model);
         }
 
