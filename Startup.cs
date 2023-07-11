@@ -23,7 +23,8 @@ namespace Csharpauth
             // for adding identity user and roles
             services.AddIdentity<IdentityUser, IdentityRole>()
                .AddEntityFrameworkStores<AppDbContext>() // this line adds relation between user and role
-               .AddDefaultTokenProviders(); // this line adds to email forget your password
+               .AddDefaultTokenProviders()
+               .AddDefaultUI(); // this line adds to email forget your password
             //
 
             // email sender
@@ -37,7 +38,7 @@ namespace Csharpauth
                 option.Lockout.MaxFailedAccessAttempts = 3;
             });
 
-            // facebook 
+            // facebook injection 
             services.AddAuthentication().AddFacebook(options =>
             {
                 options.AppId = "828039552096956";

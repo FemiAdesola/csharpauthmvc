@@ -102,6 +102,14 @@ namespace Csharpauth.Controllers
                 {
                     return LocalRedirect(returnUrl);
                 }
+                // for two factor authentication
+                if (result.RequiresTwoFactor)
+                {
+                    return RedirectToAction(nameof(VerifyAuthenticatorCode), new { 
+                        returnUrl,
+                        model.RememberMe });
+                }
+                // for logout
                 if (result.IsLockedOut)
                 {
                     return View("Lockout");
@@ -116,7 +124,7 @@ namespace Csharpauth.Controllers
         }
 
         // --------------------------------Logout --------------------------------
-        [HttpPost("logout")]
+        [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
         {
@@ -267,6 +275,7 @@ namespace Csharpauth.Controllers
                 await _signInManager.UpdateExternalAuthenticationTokensAsync(info);
                 return LocalRedirect(returnurl);
             }
+            // for two factor authentication
             if (result.RequiresTwoFactor)
             {
                 return RedirectToAction("VerifyAuthenticatorCode", new { returnurl = returnurl });
@@ -316,6 +325,95 @@ namespace Csharpauth.Controllers
             return View(model);
         }
         //
+
+        //______________________Two factor and QR Authentication__________________________________________
+        [HttpGet]
+        public async Task<IActionResult> EnableAuthenticator()
+        {
+            //string AuthenticatorUriFormat = "otpauth://totp/{0}:{1}?secret={2}&issuer={0}&digits=6"; // strig format for qrcode
+
+            var user = await _userManager.GetUserAsync(User);
+            await _userManager.ResetAuthenticatorKeyAsync(user!);
+            var token = await _userManager.GetAuthenticatorKeyAsync(user!);
+            var model = new TwoFactorAuthentication() { Token = token!};
+            return View(model);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EnableAuthenticator(TwoFactorAuthentication model)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = await _userManager.GetUserAsync(User);
+                var succeeded = await _userManager.VerifyTwoFactorTokenAsync(
+                    user!, _userManager.Options.Tokens.AuthenticatorTokenProvider, model.Code);
+                if (succeeded)
+                {
+                    await _userManager.SetTwoFactorEnabledAsync(user!, true);
+                }
+                else
+                {
+                    ModelState.AddModelError("Verify", "Your two factor auth code could not be avalidated.");
+                    return View(model);
+                }
+
+            }
+            return RedirectToAction(nameof(AuthenticatorConfirmation));
+        }
+
+        [HttpGet]
+        public IActionResult AuthenticatorConfirmation()
+        {
+            return View();
+        }
+
+
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> VerifyAuthenticatorCode(bool rememberMe, string returnUrl = null)
+        {
+            var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
+            if (user == null)
+            {
+                return View("Error");
+            }
+            ViewData["ReturnUrl"] = returnUrl;
+            return View(new VerifyAuthenticator { ReturnUrl = returnUrl, RememberMe = rememberMe });
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> VerifyAuthenticatorCode(VerifyAuthenticator model)
+        {
+            model.ReturnUrl = model.ReturnUrl ?? Url.Content("~/");
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var result = await _signInManager
+                .TwoFactorAuthenticatorSignInAsync(
+                    model.Code, 
+                    model.RememberMe, 
+                    rememberClient: false
+                );
+
+            if (result.Succeeded)
+            {
+                return LocalRedirect(model.ReturnUrl);
+            }
+            if (result.IsLockedOut)
+            {
+                return View("Lockout");
+            }
+            else
+            {
+                ModelState.AddModelError(string.Empty, "Invalid Code.");
+                return View(model);
+            }
+
+        }
 
         private void AddErrors(IdentityResult result)
         {
