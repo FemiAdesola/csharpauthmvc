@@ -2,6 +2,7 @@ using Csharpauth.Database;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Csharpauth.Models;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace Csharpauth.Controllers
 {
@@ -38,6 +39,29 @@ namespace Csharpauth.Controllers
             }
 
             return View(userList);
+        }
+
+        // for edit user by id
+        public IActionResult Edit(string userId)
+        {
+            var objFromDb = _context.AppUsers.FirstOrDefault(user=>user.Id==userId);
+            if (objFromDb == null)
+            {
+                return NotFound();
+            }
+            var userRole = _context.UserRoles.ToList();
+            var roles = _context.Roles.ToList();
+            var role = userRole.FirstOrDefault(user => user.UserId == objFromDb.Id);
+            if (role != null)
+            {
+                objFromDb.RoleId = roles.FirstOrDefault(user => user.Id == role.RoleId)!.Id;
+            }
+            objFromDb.RoleList = _context.Roles.Select(user => new SelectListItem
+            {
+                Text = user.Name,
+                Value = user.Id
+            });
+            return View(objFromDb);
         }
     }
 }
