@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.AspNetCore.Identity;
 
 namespace Csharpauth.Models
@@ -7,6 +8,11 @@ namespace Csharpauth.Models
         public string Name { get; set; } = null!;
 
         // public string UserName { get; set; } 
-        public string Email { get; set; } = null!;
+        // public string Email { get; set; }
+
+        [NotMapped]
+        public string RoleId { get; set; }
+        [NotMapped]
+        public string Role{ get; set; }
     }
 }
