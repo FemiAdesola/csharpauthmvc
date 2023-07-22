@@ -126,7 +126,21 @@ namespace Csharpauth.Controllers
             }
             _context.SaveChanges();
             return RedirectToAction(nameof(Index));
+        }
 
+        // for deleteing users
+        [HttpPost]
+        public IActionResult Delete(string userId)
+        {
+            var objFromDb = _context.AppUsers.FirstOrDefault(u => u.Id == userId);
+            if (objFromDb == null)
+            {
+                return NotFound();
+            }
+            _context.AppUsers.Remove(objFromDb);
+            _context.SaveChanges();
+            TempData[StaticToarst.Success] = "User deleted successfully.";
+            return RedirectToAction(nameof(Index));
         }
     }
 }
