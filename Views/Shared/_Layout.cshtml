@@ -33,6 +33,26 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Roles" asp-action="Index">Roles</a>
                         </li>
+
+                        @* for check acess for different users  *@
+                        <li class="nav-item dropdown">
+                            <a role="button" class="nav-link dropdown-toggle" href="#" id="navbarDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                ForCheckAccess
+                            </a>
+                            <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                                <a class="dropdown-item" asp-controller="ForCheckAccess" asp-action="AllAccess">All Access</a>
+                                <a class="dropdown-item" asp-controller="ForCheckAccess" asp-action="AuthorizedAccess">Authorized Access</a>
+                                <a class="dropdown-item" asp-controller="ForCheckAccess" asp-action="UserAccess">User Access</a>
+                                <a class="dropdown-item" asp-controller="ForCheckAccess" asp-action="UserORAdminAccess">UserORAdmin Access</a>
+                                <a class="dropdown-item" asp-controller="ForCheckAccess" asp-action="UserANDAdminAccess">UserANDAdmin Access</a>
+                                <a class="dropdown-item" asp-controller="ForCheckAccess" asp-action="AdminAccess">Admin Access</a>
+                                <a class="dropdown-item" asp-controller="ForCheckAccess" asp-action="Admin_CreateAccess">Admin - Create only Claim Access</a>
+                                <a class="dropdown-item" asp-controller="ForCheckAccess" asp-action="Admin_Create_Edit_DeleteAccess">Admin - Create,Edit & Delete Claim Access</a>
+                                <a class="dropdown-item" asp-controller="ForCheckAccess" asp-action="Admin_Create_Edit_DeleteAccess_OR_SuperAdmin">Admin - Create,Edit & Delete Claim Access || Super Admin</a>
+                                <a class="dropdown-item" asp-controller="ForCheckAccess" asp-action="OnlyFemi">Only Femi</a>
+                                <a class="dropdown-item" asp-controller="ForCheckAccess" asp-action="FirstNameAuth">Check First Name Access</a>
+                            </div>
+                        </li>
                     </ul>
                 </div>
             </div>
