@@ -1,4 +1,5 @@
 using Csharpauth.Database;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -45,6 +46,7 @@ namespace Csharpauth.Controllers
         }
 
         [HttpPost]
+        [Authorize(Policy = "OnlySuperAdminChecker")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateInsert(IdentityRole roleObj)
         {
@@ -79,6 +81,7 @@ namespace Csharpauth.Controllers
         }
 
         [HttpPost]
+        [Authorize(Policy = "OnlySuperAdminChecker")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(string id)
         {

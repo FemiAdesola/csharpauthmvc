@@ -10,6 +10,7 @@ namespace Csharpauth.Models
 
         // public string UserName { get; set; } 
         // public string Email { get; set; }
+        public DateTime DateCreated { get; set; }
 
         [NotMapped]
         public string? RoleId { get; set; }

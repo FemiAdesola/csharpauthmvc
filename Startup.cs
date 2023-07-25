@@ -1,5 +1,7 @@
+using Csharpauth.Authorize;
 using Csharpauth.Database;
 using Csharpauth.Service;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 
@@ -27,6 +29,9 @@ namespace Csharpauth
               ; // this line adds to email forget your password
             //
 
+
+           
+
             // email sender
             services.AddTransient<IEmailSender, MailJetEmailSender>();
             //
@@ -43,6 +48,44 @@ namespace Csharpauth
                options.AccessDeniedPath = new Microsoft.AspNetCore.Http.PathString("/Home/Accessdenied");
             });
 
+            // for adding authroization policy 
+             services.AddAuthorization(options =>
+            {
+                options.AddPolicy("Admin", policy => policy.RequireRole("Admin"));
+                options.AddPolicy("UserAndAdmin", policy => policy.RequireRole("Admin")
+                    .RequireRole("User"));
+                options.AddPolicy("Admin_CreateAccess", policy => policy.RequireRole("Admin")
+                    .RequireClaim("create", "True"));
+                
+                options.AddPolicy("Admin_Create_Edit_DeleteAccess", policy => policy.RequireRole("Admin")  
+                    .RequireClaim("create", "True")
+                    .RequireClaim("edit", "True")
+                    .RequireClaim("Delete", "True"));
+
+                options.AddPolicy("Admin_Create_Edit_DeleteAccess_OR_SuperAdmin", policy => policy.RequireAssertion(context =>
+                AuthorizeAdminWithClaimsOrSuperAdmin(context)));
+
+                //  options.AddPolicy("Admin_Create_Edit_DeleteAccess_OR_SuperAdmin", policy => policy.RequireAssertion(context =>(
+                //     context. User.IsInRole("Admin") && context.User.HasClaim(c => c.Type =="Create" && c.Value =="True")
+                //     && context.User.HasClaim(c => c.Type =="Edit" && c.Value =="True")
+                //     && context.User.HasClaim(c => c.Type =="Delete" && c.Value =="True")
+                //  ) || context.User.IsInRole("SuperAdmin")
+                // ));
+
+                options.AddPolicy("OnlySuperAdminChecker", policy => policy.Requirements
+                    .Add(new OnlySuperAdminChecker()));
+                options.AddPolicy("AdminWithMoreThan1000Days", policy => policy.Requirements
+                    .Add(new AdminWithMoreThan1000DaysRequirement(1000)));
+                    // for use firtname
+                options.AddPolicy("FirstNameAuth", policy => policy.Requirements
+                    .Add(new FirstNameAuthRequirement("Femi")));
+            });
+
+
+            // for get number of days from user account 
+            services.AddScoped<IAuthorizationHandler, AdminWithOver1000DaysHandler>();
+            services.AddScoped<IAuthorizationHandler, FirstNameAuthHandler>();
+            services.AddScoped<INumberOfDaysForAccount, NumberOfDaysForAccount>();
             // facebook injection 
             services.AddAuthentication().AddFacebook(options =>
             {
@@ -76,6 +119,15 @@ namespace Csharpauth
                 endpoints.MapRazorPages();
             });
        
+        }
+
+        private bool AuthorizeAdminWithClaimsOrSuperAdmin(AuthorizationHandlerContext context)
+        {
+            return (context.User.IsInRole("Admin") 
+                && context.User.HasClaim(c => c.Type == "Create" && c.Value == "True")
+                && context.User.HasClaim(c => c.Type == "Edit" && c.Value == "True")
+                && context.User.HasClaim(c => c.Type == "Delete" && c.Value == "True")
+            ) || context.User.IsInRole("SuperAdmin");
         }
     }
 }

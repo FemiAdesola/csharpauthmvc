@@ -4,6 +4,7 @@ using Csharpauth.Database;
 using Csharpauth.DTOs;
 using Csharpauth.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -19,6 +20,7 @@ namespace Csharpauth.Controllers
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IEmailSender _emailSender;
         private readonly AppDbContext _context;
+        private readonly ILogger<AccountController> _logger;
         private readonly UrlEncoder _urlEncoder;
          public AccountController(
             UserManager<IdentityUser> userManager,
@@ -26,7 +28,8 @@ namespace Csharpauth.Controllers
             RoleManager<IdentityRole> roleManager,
             AppDbContext context,
             IEmailSender emailSender,
-            UrlEncoder urlEncoder
+            UrlEncoder urlEncoder,
+             ILogger<AccountController> logger
 
             )
         {
@@ -36,6 +39,7 @@ namespace Csharpauth.Controllers
             _context = context;
             _emailSender = emailSender;
             _urlEncoder = urlEncoder;
+            _logger = logger;
         }
         public IActionResult Index()
         {
@@ -86,7 +90,8 @@ namespace Csharpauth.Controllers
                 var user = new AppUser { 
                     UserName = model.Email, 
                     Email = model.Email, 
-                    Name = model.Name 
+                    Name = model.Name ,
+                    DateCreated = DateTime.Now
                     };
                 
                 var result = await _userManager.CreateAsync(user, model.Password);
@@ -157,6 +162,22 @@ namespace Csharpauth.Controllers
                     lockoutOnFailure: true);
                 if (result.Succeeded)
                 {
+                    var user = _context.AppUsers.FirstOrDefault(u => u.Email!.ToLower() == model.Email.ToLower());
+                    var claim = await _userManager.GetClaimsAsync(user!);
+                    if (claim.Count > 0)
+                    {
+                        try
+                        {
+                            await _userManager.RemoveClaimAsync(user!, claim.FirstOrDefault(u => u.Type == "FirstName")!);
+                        }
+                        catch(Exception)
+                        {
+
+                        }
+                    }
+                    await _userManager.AddClaimAsync(user!, new Claim("FirstName", user!.Name));
+                    _logger.LogInformation("User logged in.");
+
                     return LocalRedirect(returnUrl);
                 }
                 // for two factor authentication
