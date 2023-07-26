@@ -5,9 +5,12 @@ using Csharpauth.Models;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Security.Claims;
 using static Csharpauth.Models.UserClaim;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Csharpauth.Controllers
 {
+
+    [Authorize (Roles = "SuperAdmin")]
     public class UserController : Controller
     {
         private readonly UserManager<IdentityUser> _userManager;

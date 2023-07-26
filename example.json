@@ -1,0 +1,23 @@
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "AllowedHosts": "*"
+  ,
+  "ConnectionStrings": {
+    "DefaultConnection": "yourConnection for postgres connection"
+  },
+  "MailJet": {
+    "ApiKey": "your ApiKey",
+    "SecretKey": "your SecretKey"
+  },
+  "AppSettings": {
+    "Audience": "your localhost",
+    "Secret": "aflasdfdsa@repr;adsf;asdfds89f9af$;eadf;dsf;adfl;asdlfasd;fsdf",
+    "ExpirationHours": 1,
+    "Issuer": "your localhost"
+  }
+}
